@@ -1,0 +1,269 @@
+from random import random
+from math import cos, sin, sqrt
+from numpy import pi, dot, zeros, matmul
+
+n = 8   # NUMBER OF ATOMS
+m = 1  # NUMBER OF INSTANCES
+
+for instance in range(0, m):
+
+    w = zeros((n, n))
+
+    tt = zeros((n, n))
+
+    dd = zeros((n, n))
+
+    B1 = zeros((4, 4))
+    B2 = zeros((4, 4))
+    B3 = zeros((4, 4))
+    Bi = zeros((4, 4))
+    BB = zeros((4, 4))
+
+    d = zeros((n, n))
+
+    dui = zeros((n, n))
+    dus = zeros((n, n))
+	
+	x = zeros((n, 3))
+
+    ang = 0
+
+    dd[0][1] = 1
+    dd[1][2] = 1
+
+    y0 = [0, 0, 0, 1]
+
+    for i in range(0, n):
+        for j in range(i, n):
+
+            fator = random()
+
+            if fator <= 0.33:
+                ang = pi / 3
+
+            if 0.33 < fator <= 0.66:
+                ang = pi
+
+            if 0.66 < fator <= 1:
+                ang = 5 * pi / 3
+
+            w[i][j] = ang
+            w[j][i] = ang
+
+            fator2 = random()
+
+            tt[i][j] = (2 + fator2 / 2)
+            tt[j][i] = (2 + fator2 / 2)
+
+            if i > 2:
+                dd[i - 1][i] = 1
+                tt[i - 2][i] = (2 + fator2 / 2)
+                dd[i][i - 1] = 1
+                tt[i][i - 2] = 2
+
+    B1[0][0] = 1
+    B1[0][1] = 0
+    B1[0][2] = 0
+    B1[0][3] = 0
+
+    B1[1][0] = 0
+    B1[1][1] = 1
+    B1[1][2] = 0
+    B1[1][3] = 0
+
+    B1[2][0] = 0
+    B1[2][1] = 0
+    B1[2][2] = 1
+    B1[2][3] = 0
+
+    B1[3][0] = 0
+    B1[3][1] = 0
+    B1[3][2] = 0
+    B1[3][3] = 1
+
+
+    B2[0][0] = -1
+    B2[0][1] = 0
+    B2[0][2] = 0
+    B2[0][3] = -dd[0][1]
+
+    B2[1][0] = 0
+    B2[1][1] = 1
+    B2[1][2] = 0
+    B2[1][3] = 0
+
+    B2[2][0] = 0
+    B2[2][1] = 0
+    B2[2][2] = -1
+    B2[2][3] = 0
+
+    B2[3][0] = 0
+    B2[3][1] = 0
+    B2[3][2] = 0
+    B2[3][3] = 1
+
+
+    B3[0][0] = -cos(tt[0][2])
+    B3[0][1] = -sin(tt[0][2])
+    B3[0][2] = 0
+    B3[0][3] = -dd[1][2] * cos(tt[0][2])
+
+    B3[1][0] = sin(tt[0][2])
+    B3[1][1] = -cos(tt[0][2])
+    B3[1][2] = 0
+    B3[1][3] = dd[1][2] * sin(tt[0][2])
+
+    B3[2][0] = 0
+    B3[2][1] = 0
+    B3[2][2] = 1
+    B3[2][3] = 0
+
+    B3[3][0] = 0
+    B3[3][1] = 0
+    B3[3][2] = 0
+    B3[3][3] = 1
+
+
+    x[0][0] = 0
+    x[0][1] = 0
+    x[0][2] = 0
+
+    x[1][0] = -dd[0][1]
+    x[1][1] = 0
+    x[1][2] = 0
+
+    x[2][0] = -dd[0][1] + dd[1][2] * cos(tt[1][2])
+    x[2][1] = dd[1][2] * sin(tt[0][2])
+    x[2][2] = 0
+
+    BB = matmul(matmul(B1, B2), B3)
+
+    for i in range(3, n):
+
+        Bi[0][0] = -cos(tt[i - 2][i])
+        Bi[0][1] = -sin(tt[i - 2][i])
+        Bi[0][2] = 0
+        Bi[0][3] = -dd[i - 1][i] * cos(tt[i - 2][i])
+
+        Bi[1][0] = sin(tt[i - 2][i]) * cos(w[i - 3][i])
+        Bi[1][1] = -cos(tt[i - 2][i]) * cos(w[i - 3][i])
+        Bi[1][2] = -sin(w[i - 3][i])
+        Bi[1][3] = dd[i - 1][i] * sin(tt[i - 2][i]) * cos(w[i - 3][i])
+
+        Bi[2][0] = sin(tt[i - 2][i]) * sin(w[i - 3][i])
+        Bi[2][1] = -cos(tt[i - 2][i]) * sin(w[i - 3][i])
+        Bi[2][2] = cos(w[i - 3][i])
+        Bi[2][3] = dd[i - 1][i] * sin(tt[i - 2][i]) * sin(w[i - 3][i])
+
+        Bi[3][0] = 0
+        Bi[3][1] = 0
+        Bi[3][2] = 0
+        Bi[3][3] = 1
+
+        BB = matmul(BB, Bi)
+        y = dot(BB, y0)
+
+        for k in range(0, 3):
+            x[i][k] = y[k]
+
+    radii1 = 0.15
+    radii2 = 0.3
+
+    for i in range(0, n):
+        for j in range(i, n):
+            aux = 0
+
+            for k in range(0, 3):
+                aux = aux + (x[i][k] - x[j][k]) ** 2
+
+            d[i][j] = sqrt(aux)
+            d[j][i] = d[i][j]
+            dui[i][j] = d[i][j] - min(radii2, radii2 * d[i][j])
+
+            if (j - i) < 2:     # Calcula o limite inferior
+                dui[i][j] = d[i][j] - radii1
+
+            dui[j][i] = dui[i][j]
+            dui[i][i] = 0
+            dus[i][j] = d[i][j] + min(radii2, radii2 * d[i][j])
+
+            if (j - i) < 2:     # Calcula o limite superior
+                dus[i][j] = d[i][j] + radii1
+
+            dus[j][i] = dus[i][j]
+            dus[i][i] = 0
+
+    #----------------------------------------------------------
+    #-----------------PRINTING THE INSTANCE -------------------
+    #----------------------------------------------------------
+
+    # filename = strcat([string(repete), 'auto', string(n), 'ran.dat']);
+    # fd = mopen(fullfile('C:\Users\User\Desktop\',filename),'w');
+
+    line = '-' * 150
+    title = 'Protein ' + str(instance + 1)
+
+    print('\n' + line)
+    print(title.center(150))
+    print(line)
+
+    print(f'\nAtoms: {n}')
+    print(f'\nparam y: ')
+
+    for i in range(0, 3):
+        if i == 0:
+            print(f'# {i + 1:^12}', end="")
+        else:
+            print(f'{i + 1:^12}', end="")
+
+    print('')
+    for i in range(0, 3):
+        print(f'{i + 1}', end=" ")
+
+        for j in range(0, 3):
+            print(f'[{round(x[i][j],6):^10}]', end="")
+
+
+        if i < 2:
+            print(f'')
+        else:
+            print(f';\n')
+
+    print(f'param di:')
+    for i in range(0, n):
+        if i == 0:
+            print(f'# {i + 1:^12}', end="")
+        else:
+            print(f'{i + 1:^12}', end="")
+
+    print('')
+    for i in range(0, n):
+        print(f'{i+1} ', end="")
+
+        for j in range(0, n):
+            print(f'[{round(dui[i][j],6):^10}]', end="")
+
+        if i < n:
+            print(f'')
+        else:
+            print(f';\n')
+
+    print(f'\nparam ds:')
+    for i in range(0, n):
+        if i == 0:
+            print(f'# {i+1:^12}', end="")
+        else:
+            print(f'{i + 1:^12}', end="")
+
+    print('')
+    for i in range(0, n):
+        print(f'{i+1} ', end="")
+        for j in range(0, n):
+            print(f'[{round(dus[i][j],6):^10}]', end="")
+
+        if i < n:
+            print(f'')
+        else:
+            print(f';\n')
+
+print(f'FIM', line.center(150))

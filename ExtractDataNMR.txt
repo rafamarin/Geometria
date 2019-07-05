@@ -1,0 +1,15 @@
+ref_arquivo = open("unambig.tbl","r") # << Name of the file you want to treat, it has a specific type of data, given by the output of NMR (Nuclear Magnetic Resonance)
+arquivo_saida = open("tabela.txt","w+") # << Name of the result File (will generate automatically)
+
+while True:
+    line = ref_arquivo.readline()
+    if line == '':
+        break
+    x = line.split()
+    if len(x) > 20:
+        if x[9][0:len(x[9])-1] == 'HN' and x[18][0:len(x[18])-1] == 'HA':
+            text = str(x[6] + x[9][0:len(x[9])-1] + ' ' + x[15] + x[18][0:len(x[18])-1] + ' ' + x[19] + ' ' + x[20] + ' ' + x[21] + '\n')
+            arquivo_saida.write(text)
+
+ref_arquivo.close()
+arquivo_saida.close()
